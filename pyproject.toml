@@ -8,13 +8,16 @@ classifiers = [
 ]
 name = "phi-functions"
 version = "0.1.0"
-description = "Rational approximation of the exponential and the phi functions of exponential integrators on the negative real axis: Carath\u00e9odory-Fej\u00e9r best approximants, Talbot-type contour quadrature, common poles across all phi functions, and matrix evaluation of phi_l(A) b through shifted linear solves."
+description = "Rational approximation of the exponential and the phi functions of exponential integrators on the negative real axis: Carathéodory-Fejér best approximants, Talbot-type contour quadrature, common poles across all phi functions, and matrix evaluation of phi_l(A) b through shifted linear solves."
 readme = "README.md"
 authors = [
     { name = "Thomas Schmelzer", email = "thomas.schmelzer@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "numpy>=2.0",
+    "scipy>=1.13",
+]
 
 [build-system]
 requires = ["uv_build>=0.11.28,<0.12.0"]
@@ -38,3 +41,8 @@ filename = "pyproject.toml"
 regex = true
 search = '(?ms)^\[project\]((?:(?!^\[)[\s\S])*?)^version = "{current_version}"'
 replace = '[project]\1version = "{new_version}"'
+
+# deptry sees the package installed in the environment it runs in and would otherwise report the
+# intra-package imports in matrix.py and cf.py as a transitive dependency.
+[tool.deptry]
+known_first_party = ["phi_functions"]
