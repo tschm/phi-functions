@@ -58,7 +58,7 @@ def _cotangent_derivative(theta: NDArray[np.float64]) -> NDArray[np.complex128]:
     nonzero = theta != 0.0
     x = 0.6407 * theta[nonzero]
     derivative[nonzero] = 1.0 / np.tan(x) - x / np.sin(x) ** 2
-    return 0.5017 * derivative + 0.2645j
+    return np.asarray(0.5017 * derivative + 0.2645j, dtype=np.complex128)
 
 
 TALBOT = Contour("talbot", _cotangent_map, _cotangent_derivative, 3.89)
@@ -112,7 +112,7 @@ def contour_exp(nodes: int, contour: Contour | str = TALBOT) -> PartialFractions
     # Midpoints of a uniform partition of (-pi, pi) into `nodes` cells; only those with theta > 0 are
     # computed, the rest follow by conjugation. An odd count puts one node exactly at theta = 0.
     step = 2.0 * np.pi / nodes
-    upper = (np.arange(nodes // 2) + 0.5 * (1 + nodes % 2)) * step
+    upper = (np.arange(nodes // 2, dtype=np.float64) + 0.5 * (1 + nodes % 2)) * step
     s_upper = nodes * contour.map(upper)
     c_upper = 1j / nodes * np.exp(s_upper) * nodes * contour.derivative(upper)
     poles = np.concatenate([s_upper.conj()[::-1], s_upper])
