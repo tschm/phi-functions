@@ -32,9 +32,13 @@ import numpy as np
 from phi_functions import cf_phi, phi
 
 result = cf_phi(6, order=1)
-r = result.approximation           # PartialFractions with 3 conjugate pairs of poles
+r = result.approximation  # PartialFractions with 3 conjugate pairs of poles
 x = -np.logspace(-6, 6, 1000)
-print(np.max(np.abs(r(x) - phi(1, x))), result.error_estimate)
+print(f"{np.max(np.abs(r(x) - phi(1, x))):.2e} {result.error_estimate:.2e}")
+```
+
+```result
+8.45e-08 8.45e-08
 ```
 
 All phi functions of a matrix at once, sharing the poles of a shifted approximation of the exponential
@@ -46,10 +50,10 @@ import numpy as np
 from phi_functions import PhiSolver
 
 n = 200
-a = (n + 1) ** 2 * (-2 * np.eye(n) + np.eye(n, k=1) + np.eye(n, k=-1))   # 1-d Laplacian
-solver = PhiSolver(a, orders=(0, 1, 2, 3), h=0.01, degree=12)            # 6 complex factorizations
+a = (n + 1) ** 2 * (-2 * np.eye(n) + np.eye(n, k=1) + np.eye(n, k=-1))  # 1-d Laplacian
+solver = PhiSolver(a, orders=(0, 1, 2, 3), h=0.01, degree=12)  # 6 complex factorizations
 u = np.sin(np.pi * np.arange(1, n + 1) / (n + 1))
-e0, e1, e2, e3 = solver(u)                                                # exp(hA) u, phi_1(hA) u, ...
+e0, e1, e2, e3 = solver(u)  # exp(hA) u, phi_1(hA) u, ...
 ```
 
 `a` may be a SciPy sparse matrix, in which case `splu` is used, or you can pass your own

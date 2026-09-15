@@ -1,0 +1,15 @@
+# Root MkDocs configuration; everything not set here is inherited from the rhiza base.
+INHERIT: docs/mkdocs-base.yml
+
+site_name: phi-functions
+site_description: >-
+  Rational approximation of the exponential and the phi functions of exponential integrators
+  on the negative real axis, and fast evaluation of phi_l(A) b.
+site_url: https://tschm.github.io/phi-functions/
+repo_url: https://github.com/tschm/phi-functions
+repo_name: tschm/phi-functions
+
+nav:
+  - Home: index.md
+  - Development:
+      - Rhiza: development/rhiza.md

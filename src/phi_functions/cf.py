@@ -123,14 +123,22 @@ def cf_phi(
     return CFApproximation(symmetrized(poles, residues, constant), order, singular_values)
 
 
-def cf_exp(degree: int, **kwargs: int | float) -> CFApproximation:
+def cf_exp(
+    degree: int,
+    *,
+    chebyshev_terms: int = 75,
+    fft_points: int = 1024,
+    scale: float = 9.0,
+) -> CFApproximation:
     """Construct the Carathéodory-Fejér approximation of the exponential; shorthand for ``cf_phi(degree, 0)``.
 
     Args:
         degree: Number of poles.
-        **kwargs: Passed on to :func:`cf_phi`.
+        chebyshev_terms: Passed on to :func:`cf_phi`.
+        fft_points: Passed on to :func:`cf_phi`.
+        scale: Passed on to :func:`cf_phi`.
 
     Returns:
         The approximation of ``exp`` on the negative real axis.
     """
-    return cf_phi(degree, 0, **kwargs)
+    return cf_phi(degree, 0, chebyshev_terms=chebyshev_terms, fft_points=fft_points, scale=scale)

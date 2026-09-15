@@ -96,12 +96,13 @@ def shifted_factorizer(a: ArrayLike | scipy.sparse.sparray | scipy.sparse.spmatr
     Raises:
         ValueError: If ``a`` is not square.
     """
-    if scipy.sparse.issparse(a):
-        n = a.shape[0]
-        if a.shape != (n, n):
-            msg = f"expected a square matrix, got shape {a.shape}"
+    if isinstance(a, (scipy.sparse.sparray, scipy.sparse.spmatrix)):
+        matrix = scipy.sparse.csc_matrix(a, dtype=np.complex128)
+        n = matrix.shape[0]
+        if matrix.shape != (n, n):
+            msg = f"expected a square matrix, got shape {matrix.shape}"
             raise ValueError(msg)
-        scaled = scipy.sparse.csc_matrix(h * a, dtype=np.complex128)
+        scaled = h * matrix
         identity = scipy.sparse.identity(n, dtype=np.complex128, format="csc")
 
         def factorize_sparse(z: complex) -> Callable[[NDArray], NDArray]:
@@ -193,7 +194,13 @@ def phi_matvec(
     a: ArrayLike | scipy.sparse.sparray | scipy.sparse.spmatrix,
     b: ArrayLike,
     orders: Sequence[int] = (0, 1, 2, 3),
-    **kwargs: float | int | str | Factorize | None,
+    *,
+    h: float = 1.0,
+    degree: int = 12,
+    method: str = "cf",
+    shift: float | None = None,
+    base_order: int = 0,
+    factorize: Factorize | None = None,
 ) -> NDArray:
     """Evaluate ``phi_l(h A) b`` for the given orders in one go.
 
@@ -204,10 +211,17 @@ def phi_matvec(
         a: Square matrix ``A``, dense or SciPy sparse.
         b: Right-hand side.
         orders: Indices ``l`` of the phi functions.
-        **kwargs: Passed on to :class:`PhiSolver` (``h``, ``degree``, ``method``, ``shift``, ``base_order``,
-            ``factorize``).
+        h: Time step, see :class:`PhiSolver`.
+        degree: Number of poles, see :class:`PhiSolver`.
+        method: ``"cf"`` or a contour name, see :class:`PhiSolver`.
+        shift: Lu's shift, see :class:`PhiSolver`.
+        base_order: Whose poles to use, see :class:`PhiSolver`.
+        factorize: Custom factorizer, see :class:`PhiSolver`.
 
     Returns:
         Array of shape ``(len(orders), *b.shape)`` with ``phi_l(h A) b`` for each ``l``.
     """
-    return PhiSolver(a, orders, **kwargs)(b)
+    solver = PhiSolver(
+        a, orders, h=h, degree=degree, method=method, shift=shift, base_order=base_order, factorize=factorize
+    )
+    return solver(b)
