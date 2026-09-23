@@ -85,8 +85,21 @@ With the poles of the shifted (`s = 1`) exponential shared by all four functions
 
 ## Development
 
-The repository is managed by [rhiza](https://github.com/jebel-quant/rhiza). Run the tests with
+The development tooling (CI, pre-commit hooks, `ruff.toml`, `pytest.ini` and the `Makefile`) is synced from
+the [rhiza](https://github.com/jebel-quant/rhiza) template; `.rhiza/template.yml` pins the version and
+`make update` pulls a newer one. The gates CI runs are available locally:
 
 ```bash
-uv run --group test pytest
+make install        # create the virtual environment and sync dependencies
+make fmt            # pre-commit hooks: ruff, markdownlint, bandit, interrogate, ...
+make typecheck      # ty over src/
+make deps           # deptry: unused or missing dependencies
+make docs-coverage  # docstring coverage with interrogate
+make security       # bandit security scan
+make license        # fail on copyleft licences among the dependencies
+make rhiza-test     # repository checks, including the doctests and the README examples above
+make test           # the test suite with its coverage gate
+make all            # every gate, as CI does
 ```
+
+`make help` lists every task.
