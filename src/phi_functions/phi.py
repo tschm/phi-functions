@@ -45,6 +45,15 @@ def phi(order: int, z: ArrayLike) -> NDArray[np.float64] | NDArray[np.complex128
 
     Raises:
         ValueError: If ``order`` is negative.
+
+    Examples:
+        >>> import numpy as np
+        >>> float(phi(1, 0.0))
+        1.0
+        >>> bool(np.isclose(phi(1, -1.0), 1 - np.exp(-1.0)))
+        True
+        >>> phi(2, np.array([0.0, -1e-8])).round(12)
+        array([0.5, 0.5])
     """
     if order < 0:
         msg = f"order must be non-negative, got {order}"
@@ -94,6 +103,14 @@ def phi_matrix(order: int, a: ArrayLike) -> NDArray:
 
     Raises:
         ValueError: If ``order`` is negative or ``a`` is not square.
+
+    Examples:
+        For a diagonal matrix ``phi_order`` acts on the diagonal entries:
+
+        >>> import numpy as np
+        >>> a = np.diag([0.0, -1.0])
+        >>> bool(np.allclose(phi_matrix(1, a), np.diag(phi(1, [0.0, -1.0]))))
+        True
     """
     if order < 0:
         msg = f"order must be non-negative, got {order}"

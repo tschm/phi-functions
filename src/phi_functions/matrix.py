@@ -132,6 +132,17 @@ class PhiSolver:
 
     Each shifted matrix ``h A - z_j I`` is factorized once, on first use, so calling the solver repeatedly -
     once per time step of an exponential integrator - costs only triangular solves.
+
+    Examples:
+        For ``A = -I`` every ``phi_l(A) b`` is ``phi_l(-1) b``:
+
+        >>> import numpy as np
+        >>> solver = PhiSolver(-np.eye(3), orders=(0, 1), degree=12)
+        >>> e0, e1 = solver(np.ones(3))
+        >>> bool(np.allclose(e0, np.exp(-1.0))), bool(np.allclose(e1, 1 - np.exp(-1.0)))
+        (True, True)
+        >>> solver.poles.size
+        12
     """
 
     def __init__(

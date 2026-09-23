@@ -35,6 +35,17 @@ class PartialFractions:
         poles: The poles ``z_j``, a one-dimensional complex array.
         residues: The residues ``c_j`` at the poles, same shape as ``poles``.
         constant: The value at infinity.
+
+    Examples:
+        ``r(z) = 1 + 2 / (z + 1)``, and the function it induces one order up:
+
+        >>> r = PartialFractions(poles=[-1.0], residues=[2.0], constant=1.0)
+        >>> float(r(1.0))
+        2.0
+        >>> r.is_real
+        True
+        >>> r.induced(1).residues.real
+        array([-2.])
     """
 
     poles: NDArray[np.complex128]
