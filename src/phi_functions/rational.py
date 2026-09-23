@@ -183,6 +183,25 @@ def evaluate_shared_poles(fractions: Sequence[PartialFractions], solve: Solve, b
     Raises:
         ValueError: If no functions are given or their poles differ.
     """
+    poles = _shared_poles(fractions)
+    rhs = np.asarray(b)
+    real_data = not np.iscomplexobj(rhs) and all(r.is_real for r in fractions)
+
+    out = np.array([r.constant * rhs for r in fractions], dtype=np.complex128)
+    for j, weight in _solve_terms(fractions[0], real_data):
+        x = solve(complex(poles[j]), rhs)
+        for i, r in enumerate(fractions):
+            contribution = r.residues[j] * x
+            out[i] += weight * (contribution.real if real_data else contribution)
+    return out.real if real_data else out
+
+
+def _shared_poles(fractions: Sequence[PartialFractions]) -> NDArray[np.complex128]:
+    """Return the poles common to all ``fractions``.
+
+    Raises:
+        ValueError: If no functions are given or their poles differ.
+    """
     if not fractions:
         msg = "at least one rational function is required"
         raise ValueError(msg)
@@ -191,27 +210,20 @@ def evaluate_shared_poles(fractions: Sequence[PartialFractions], solve: Solve, b
         if other.poles.shape != poles.shape or not np.array_equal(other.poles, poles):
             msg = "all rational functions must share the same poles"
             raise ValueError(msg)
-    rhs = np.asarray(b)
-    real_data = not np.iscomplexobj(rhs) and all(r.is_real for r in fractions)
-    representatives = fractions[0].conjugate_representatives() if real_data else None
+    return poles
 
-    out = np.array([r.constant * rhs for r in fractions], dtype=np.complex128)
+
+def _solve_terms(fraction: PartialFractions, real_data: bool) -> list[tuple[int, float]]:
+    """Return the poles to solve for as ``(index, weight)`` pairs.
+
+    For real data only the poles in the closed upper half-plane are solved for, a conjugate pair counting
+    twice through the real part of its contribution; otherwise every pole is solved for once.
+    """
+    representatives = fraction.conjugate_representatives() if real_data else None
     if representatives is None:
-        for j, pole in enumerate(poles):
-            x = solve(complex(pole), rhs)
-            for i, r in enumerate(fractions):
-                out[i] += r.residues[j] * x
-    else:
-        upper, real = representatives
-        for j in upper:
-            x = solve(complex(poles[j]), rhs)
-            for i, r in enumerate(fractions):
-                out[i] += 2.0 * (r.residues[j] * x).real
-        for j in real:
-            x = solve(complex(poles[j]), rhs)
-            for i, r in enumerate(fractions):
-                out[i] += (r.residues[j] * x).real
-    return out.real if real_data else out
+        return [(j, 1.0) for j in range(fraction.degree)]
+    upper, real = representatives
+    return [(int(j), 2.0) for j in upper] + [(int(j), 1.0) for j in real]
 
 
 def symmetrized(poles: ArrayLike, residues: ArrayLike, constant: complex = 0.0) -> PartialFractions:
