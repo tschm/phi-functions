@@ -47,13 +47,20 @@ are cached in the solver, so calling it once per time step costs only triangular
 
 ```python
 import numpy as np
-from phi_functions import PhiSolver
+from phi_functions import PhiSolver, phi_matrix
 
 n = 200
 a = (n + 1) ** 2 * (-2 * np.eye(n) + np.eye(n, k=1) + np.eye(n, k=-1))  # 1-d Laplacian
 solver = PhiSolver(a, orders=(0, 1, 2, 3), h=0.01, degree=12)  # 6 complex factorizations
 u = np.sin(np.pi * np.arange(1, n + 1) / (n + 1))
 e0, e1, e2, e3 = solver(u)  # exp(hA) u, phi_1(hA) u, ...
+
+reference = phi_matrix(1, 0.01 * a) @ u  # dense augmented exponential
+print(np.max(np.abs(e1 - reference)) < 1e-10 * np.max(np.abs(reference)))
+```
+
+```result
+True
 ```
 
 `a` may be a SciPy sparse matrix, in which case `splu` is used, or you can pass your own

@@ -76,6 +76,17 @@ def cf_phi(
 
     Raises:
         ValueError: If the parameters are inconsistent.
+
+    Examples:
+        Six poles approximate ``phi_1`` to about ``1e-7`` on the whole negative axis:
+
+        >>> import numpy as np
+        >>> result = cf_phi(6, order=1)
+        >>> result.approximation.degree
+        6
+        >>> x = -np.logspace(-6, 6, 1000)
+        >>> bool(np.max(np.abs(result.approximation(x) - phi(1, x))) < 1e-7)
+        True
     """
     if degree < 1:
         msg = f"degree must be at least 1, got {degree}"
