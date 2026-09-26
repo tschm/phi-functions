@@ -1,11 +1,15 @@
 """Tests for evaluating phi_l(h A) b with common poles."""
 
+from typing import get_args
+
 import numpy as np
 import pytest
 import scipy.sparse
 
+from phi_functions.contours import CONTOURS
 from phi_functions.matrix import PhiSolver, common_pole_approximations, phi_matvec, shifted_factorizer
 from phi_functions.phi import phi_matrix
+from phi_functions.poles import Method
 
 
 @pytest.fixture(scope="module")
@@ -110,6 +114,11 @@ def test_common_pole_approximations_validate():
         common_pole_approximations((0,), method="pade")
     with pytest.raises(ValueError, match="base_order=0"):
         common_pole_approximations((1,), method="talbot", base_order=1)
+
+
+def test_method_literal_matches_contours():
+    """The ``Method`` alias lists exactly ``"cf"`` and the registered contours."""
+    assert set(get_args(Method)) == {"cf", *CONTOURS}
 
 
 def test_shifted_factorizer_rejects_non_square():

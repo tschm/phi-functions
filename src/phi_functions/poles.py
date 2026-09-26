@@ -9,17 +9,21 @@ poles, about ``9.28903**-degree`` accuracy) or from a Talbot-type contour (``deg
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import Literal
 
 from phi_functions.cf import cf_phi
 from phi_functions.contours import CONTOURS, contour_exp
 from phi_functions.rational import PartialFractions
+
+Method = Literal["cf", "talbot", "parabola", "hyperbola"]
+"""Pole sources accepted by ``method``: ``"cf"`` or a key of :data:`~phi_functions.contours.CONTOURS`."""
 
 
 def common_pole_approximations(
     orders: Sequence[int],
     *,
     degree: int = 12,
-    method: str = "cf",
+    method: Method = "cf",
     shift: float | None = None,
     base_order: int = 0,
 ) -> list[PartialFractions]:
@@ -79,7 +83,7 @@ def _resolve_shift(shift: float | None, base_order: int) -> float:
     return shift
 
 
-def _base_approximation(method: str, degree: int, base_order: int) -> PartialFractions:
+def _base_approximation(method: Method, degree: int, base_order: int) -> PartialFractions:
     """Return the approximation of ``phi_{base_order}`` whose poles every other function reuses.
 
     Raises:

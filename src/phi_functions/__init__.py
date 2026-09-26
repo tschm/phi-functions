@@ -12,7 +12,7 @@ from phi_functions.contours import CONTOURS, HYPERBOLA, PARABOLA, TALBOT, Contou
 from phi_functions.halphen import HALPHEN, asymptotic_error, halphen_constant
 from phi_functions.matrix import PhiSolver, phi_matvec, shifted_factorizer
 from phi_functions.phi import phi, phi_matrix
-from phi_functions.poles import common_pole_approximations
+from phi_functions.poles import Method, common_pole_approximations
 from phi_functions.rational import PartialFractions, evaluate_shared_poles, symmetrized
 
 __all__ = [
@@ -23,6 +23,7 @@ __all__ = [
     "TALBOT",
     "CFApproximation",
     "Contour",
+    "Method",
     "PartialFractions",
     "PhiSolver",
     "asymptotic_error",
