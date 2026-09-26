@@ -20,6 +20,7 @@ The phi functions are `phi_0(z) = exp(z)` and `phi_l(z) = (phi_{l-1}(z) - 1/(l-1
 | `phi_functions.cf` | `cf_phi(n, l)`: the type `(n, n)` Carathéodory-Fejér approximation of `phi_l` on `(-inf, 0]`, indistinguishable in practice from the best approximation. The singular values estimate the error for every degree at once. |
 | `phi_functions.contours` | `contour_exp(N, contour)`: trapezoid rules on Talbot's cotangent contour, a parabola or a hyperbola, as rational functions with the quadrature nodes as poles. |
 | `phi_functions.rational` | `PartialFractions`: poles, residues and value at infinity, with `shifted(s)` (Lu's shift), `induced(k)` (the same poles reused for `phi_{l+k}`) and `apply(solve, b)` (one shifted solve per pole, half of them for real data). |
+| `phi_functions.poles` | `common_pole_approximations(orders)`: approximations of several `phi_l` that share the poles of one CF or contour approximation, optionally with Lu's shift. |
 | `phi_functions.matrix` | `PhiSolver` and `phi_matvec`: `phi_l(hA) b` for several `l` from one set of poles, with dense or sparse LU factorizations that are computed once and reused across time steps. |
 | `phi_functions.halphen` | Halphen's constant `1/9.28903...`, the geometric rate at which the errors decay. |
 

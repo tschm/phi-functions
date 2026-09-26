@@ -6,9 +6,8 @@ rational approximation in partial fractions, each is a sum of solutions of shift
 means the shifted systems are solved once and every ``phi_l(h A) b`` is a different linear combination of the
 same ``x_j``. For real data the poles come in conjugate pairs and only half of the systems are solved.
 
-The poles come either from a Carathéodory-Fejér approximation (``degree`` poles, about
-``9.28903**-degree`` accuracy) or from a Talbot-type contour (``degree`` nodes, about
-``3.89**-degree`` accuracy but independent of the time step in the sense of eq. (5.7)).
+The common poles come from :func:`phi_functions.poles.common_pole_approximations`, either from a
+Carathéodory-Fejér approximation or from a Talbot-type contour.
 """
 
 from __future__ import annotations
@@ -21,76 +20,11 @@ import scipy.sparse
 import scipy.sparse.linalg
 from numpy.typing import ArrayLike, NDArray
 
-from phi_functions.cf import cf_phi
-from phi_functions.contours import CONTOURS, contour_exp
-from phi_functions.rational import PartialFractions, evaluate_shared_poles
+from phi_functions.poles import common_pole_approximations
+from phi_functions.rational import evaluate_shared_poles
 
 Factorize = Callable[[complex], Callable[[NDArray], NDArray]]
 """``factorize(z)`` returns a function ``rhs -> (h A - z I)^{-1} rhs`` for the operator being evaluated."""
-
-
-def common_pole_approximations(
-    orders: Sequence[int],
-    *,
-    degree: int = 12,
-    method: str = "cf",
-    shift: float | None = None,
-    base_order: int = 0,
-) -> list[PartialFractions]:
-    """Rational approximations of ``phi_l`` for the given ``l`` that share one set of poles.
-
-    The poles are those of an approximation of ``phi_{base_order}``; the other functions are induced by
-    eq. (4.2). Accuracy is best for ``l`` close to ``base_order`` (Table 4.1 of the paper) and, when the base
-    is the exponential, improves markedly with a shift of order one (Table 4.2).
-
-    Args:
-        orders: Indices ``l >= base_order`` of the phi functions.
-        degree: Number of poles: the CF degree, or the number of contour nodes.
-        method: ``"cf"`` for Carathéodory-Fejér poles, or a contour name (``"talbot"``, ``"parabola"``,
-            ``"hyperbola"``).
-        shift: Lu's shift ``s`` applied to an approximation of the exponential; defaults to ``1`` when
-            ``base_order`` is ``0`` and must be ``None`` or ``0`` otherwise.
-        base_order: Index of the phi function whose approximation supplies the poles. Contours require ``0``.
-
-    Returns:
-        One :class:`PartialFractions` per entry of ``orders``, all with identical ``poles``.
-
-    Raises:
-        ValueError: If an order is below ``base_order``, a shift is requested for a base other than the
-            exponential, or the method is unknown.
-
-    Examples:
-        Approximations of ``exp``, ``phi_1`` and ``phi_2`` with the same eight poles:
-
-        >>> import numpy as np
-        >>> fractions = common_pole_approximations((0, 1, 2), degree=8)
-        >>> len(fractions), fractions[0].degree
-        (3, 8)
-        >>> all(np.array_equal(r.poles, fractions[0].poles) for r in fractions)
-        True
-    """
-    if any(order < base_order for order in orders):
-        msg = f"all orders must be at least base_order={base_order}, got {list(orders)}"
-        raise ValueError(msg)
-    if shift is None:
-        shift = 1.0 if base_order == 0 else 0.0
-    if shift != 0.0 and base_order != 0:
-        msg = "a shift is only meaningful for an approximation of the exponential (base_order=0)"
-        raise ValueError(msg)
-
-    if method == "cf":
-        base = cf_phi(degree, base_order).approximation
-    elif method in CONTOURS:
-        if base_order != 0:
-            msg = "contour quadrature approximates the exponential; use base_order=0"
-            raise ValueError(msg)
-        base = contour_exp(degree, CONTOURS[method])
-    else:
-        msg = f"unknown method {method!r}; choose 'cf' or one of {sorted(CONTOURS)}"
-        raise ValueError(msg)
-    if shift != 0.0:
-        base = base.shifted(shift)
-    return [base.induced(order - base_order) for order in orders]
 
 
 def shifted_factorizer(a: ArrayLike | scipy.sparse.sparray | scipy.sparse.spmatrix, *, h: float = 1.0) -> Factorize:
