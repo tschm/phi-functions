@@ -5,6 +5,9 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    # Not for PyPI: PyPI rejects any upload carrying this classifier, and rhiza_release.yml
+    # skips its publish step when it finds it.
+    "Private :: Do Not Upload",
 ]
 name = "phi-functions"
 version = "0.1.0"
