@@ -193,6 +193,17 @@ def evaluate_shared_poles(fractions: Sequence[PartialFractions], solve: Solve, b
 
     Raises:
         ValueError: If no functions are given or their poles differ.
+
+    Examples:
+        ``r(z) = 1 + 2 / (z - 1)`` and the function it induces, applied to a diagonal matrix with one solve:
+
+        >>> import numpy as np
+        >>> a = np.diag([-1.0, -3.0])
+        >>> r = PartialFractions(poles=[1.0], residues=[2.0], constant=1.0)
+        >>> solve = lambda z, rhs: np.linalg.solve(a - z * np.eye(2), rhs)
+        >>> evaluate_shared_poles([r, r.induced(1)], solve, np.ones(2))
+        array([[ 0. ,  0.5],
+               [-1. , -0.5]])
     """
     poles = _shared_poles(fractions)
     rhs = np.asarray(b)
@@ -255,6 +266,15 @@ def symmetrized(poles: ArrayLike, residues: ArrayLike, constant: complex = 0.0) 
 
     Raises:
         ValueError: If the poles cannot be paired.
+
+    Examples:
+        A conjugate pair perturbed by rounding becomes exactly conjugate:
+
+        >>> r = symmetrized([1 + 2j, 1 - 2j + 1e-13], [1 + 1j, 1 - 1j + 1e-13j], 0.5)
+        >>> r.is_real
+        True
+        >>> r.poles
+        array([1.-2.j, 1.+2.j])
     """
     p = np.atleast_1d(np.asarray(poles, dtype=np.complex128))
     c = np.atleast_1d(np.asarray(residues, dtype=np.complex128))
