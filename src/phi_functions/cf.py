@@ -151,5 +151,16 @@ def cf_exp(
 
     Returns:
         The approximation of ``exp`` on the negative real axis.
+
+    Examples:
+        Eight poles approximate the exponential to about ``1e-8`` on the negative axis:
+
+        >>> import numpy as np
+        >>> result = cf_exp(8)
+        >>> result.degree
+        8
+        >>> x = -np.logspace(-6, 6, 1000)
+        >>> bool(np.max(np.abs(result.approximation(x) - np.exp(x))) < 2e-8)
+        True
     """
     return cf_phi(degree, 0, chebyshev_terms=chebyshev_terms, fft_points=fft_points, scale=scale)

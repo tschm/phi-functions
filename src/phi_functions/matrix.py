@@ -58,6 +58,16 @@ def common_pole_approximations(
     Raises:
         ValueError: If an order is below ``base_order``, a shift is requested for a base other than the
             exponential, or the method is unknown.
+
+    Examples:
+        Approximations of ``exp``, ``phi_1`` and ``phi_2`` with the same eight poles:
+
+        >>> import numpy as np
+        >>> fractions = common_pole_approximations((0, 1, 2), degree=8)
+        >>> len(fractions), fractions[0].degree
+        (3, 8)
+        >>> all(np.array_equal(r.poles, fractions[0].poles) for r in fractions)
+        True
     """
     if any(order < base_order for order in orders):
         msg = f"all orders must be at least base_order={base_order}, got {list(orders)}"
@@ -95,6 +105,14 @@ def shifted_factorizer(a: ArrayLike | scipy.sparse.sparray | scipy.sparse.spmatr
 
     Raises:
         ValueError: If ``a`` is not square.
+
+    Examples:
+        For a diagonal matrix the shifted solve divides by ``a_ii - z``:
+
+        >>> import numpy as np
+        >>> solve = shifted_factorizer(np.diag([-1.0, -2.0]))(1j)
+        >>> solve(np.ones(2))
+        array([-0.5+0.5j, -0.4+0.2j])
     """
     if isinstance(a, (scipy.sparse.sparray, scipy.sparse.spmatrix)):
         matrix = scipy.sparse.csc_matrix(a, dtype=np.complex128)
@@ -231,6 +249,14 @@ def phi_matvec(
 
     Returns:
         Array of shape ``(len(orders), *b.shape)`` with ``phi_l(h A) b`` for each ``l``.
+
+    Examples:
+        For ``A = -I`` the rows are ``exp(-1) b`` and ``phi_1(-1) b = (1 - exp(-1)) b``:
+
+        >>> import numpy as np
+        >>> phi_matvec(-np.eye(2), np.ones(2), orders=(0, 1)).round(6)
+        array([[0.367879, 0.367879],
+               [0.632121, 0.632121]])
     """
     solver = PhiSolver(
         a, orders, h=h, degree=degree, method=method, shift=shift, base_order=base_order, factorize=factorize

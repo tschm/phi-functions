@@ -26,6 +26,10 @@ def halphen_constant() -> float:
 
     Returns:
         The unique root in ``(0, 1)`` of ``sum_{n >= 1} n upsilon**n / (1 - (-upsilon)**n) = 1/8``.
+
+    Examples:
+        >>> round(1 / halphen_constant(), 5)
+        9.28903
     """
     return float(brentq(lambda u: _halphen_series(u) - 0.125, 0.05, 0.5, xtol=1e-16, rtol=4 * 2.220446049250313e-16))
 
@@ -45,5 +49,11 @@ def asymptotic_error(degree: int) -> float:
 
     Returns:
         The leading-order minimax error on the negative real axis.
+
+    Examples:
+        The prediction for ``n = 10`` is close to the CF error estimate of ``1.36e-10``:
+
+        >>> f"{asymptotic_error(10):.2e}"
+        '1.37e-10'
     """
     return 2.0 * math.pow(HALPHEN, degree + 0.5)

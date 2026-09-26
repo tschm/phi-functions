@@ -99,6 +99,17 @@ def contour_exp(nodes: int, contour: Contour | str = TALBOT) -> PartialFractions
 
     Raises:
         ValueError: If ``nodes`` is not positive or the contour name is unknown.
+
+    Examples:
+        Twenty-four nodes on Talbot's contour reach machine precision on the negative axis:
+
+        >>> import numpy as np
+        >>> r = contour_exp(24, "talbot")
+        >>> r.degree, r.is_real
+        (24, True)
+        >>> x = -np.logspace(-3, 3, 200)
+        >>> bool(np.max(np.abs(r(x) - np.exp(x))) < 1e-13)
+        True
     """
     if nodes < 1:
         msg = f"nodes must be positive, got {nodes}"
