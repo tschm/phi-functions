@@ -10,8 +10,9 @@ one shifted linear solve per pole, and all phi functions can share one set of po
 from phi_functions.cf import CFApproximation, cf_exp, cf_phi
 from phi_functions.contours import CONTOURS, HYPERBOLA, PARABOLA, TALBOT, Contour, contour_exp
 from phi_functions.halphen import HALPHEN, asymptotic_error, halphen_constant
-from phi_functions.matrix import PhiSolver, common_pole_approximations, phi_matvec, shifted_factorizer
+from phi_functions.matrix import PhiSolver, phi_matvec, shifted_factorizer
 from phi_functions.phi import phi, phi_matrix
+from phi_functions.poles import common_pole_approximations
 from phi_functions.rational import PartialFractions, evaluate_shared_poles, symmetrized
 
 __all__ = [
