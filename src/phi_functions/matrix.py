@@ -20,7 +20,7 @@ import scipy.sparse
 import scipy.sparse.linalg
 from numpy.typing import ArrayLike, NDArray
 
-from phi_functions.poles import common_pole_approximations
+from phi_functions.poles import Method, common_pole_approximations
 from phi_functions.rational import evaluate_shared_poles
 
 Factorize = Callable[[complex], Callable[[NDArray], NDArray]]
@@ -104,7 +104,7 @@ class PhiSolver:
         *,
         h: float = 1.0,
         degree: int = 12,
-        method: str = "cf",
+        method: Method = "cf",
         shift: float | None = None,
         base_order: int = 0,
         factorize: Factorize | None = None,
@@ -160,7 +160,7 @@ def phi_matvec(
     *,
     h: float = 1.0,
     degree: int = 12,
-    method: str = "cf",
+    method: Method = "cf",
     shift: float | None = None,
     base_order: int = 0,
     factorize: Factorize | None = None,
