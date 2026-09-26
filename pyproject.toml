@@ -10,7 +10,7 @@ classifiers = [
     "Private :: Do Not Upload",
 ]
 name = "phi-functions"
-version = "0.1.0"
+version = "0.2.0"
 description = "Rational approximation of the exponential and the phi functions of exponential integrators on the negative real axis: Carathéodory-Fejér best approximants, Talbot-type contour quadrature, common poles across all phi functions, and matrix evaluation of phi_l(A) b through shifted linear solves."
 readme = "README.md"
 authors = [
@@ -34,7 +34,7 @@ Repository = "https://github.com/tschm/phi-functions"
 test = ["pytest>=8.0", "pytest-cov>=5.0"]
 
 [tool.bumpversion]
-current_version = "0.1.0"
+current_version = "0.2.0"
 tag = false
 commit = false
 allow_dirty = false
