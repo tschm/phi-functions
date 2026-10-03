@@ -46,8 +46,8 @@ def common_pole_approximations(
         One :class:`PartialFractions` per entry of ``orders``, all with identical ``poles``.
 
     Raises:
-        ValueError: If an order is below ``base_order``, a shift is requested for a base other than the
-            exponential, or the method is unknown.
+        ValueError: If no orders are given, an order is below ``base_order``, a shift is requested for a
+            base other than the exponential, or the method is unknown.
 
     Examples:
         Approximations of ``exp``, ``phi_1`` and ``phi_2`` with the same eight poles:
@@ -59,14 +59,26 @@ def common_pole_approximations(
         >>> all(np.array_equal(r.poles, fractions[0].poles) for r in fractions)
         True
     """
-    if any(order < base_order for order in orders):
-        msg = f"all orders must be at least base_order={base_order}, got {list(orders)}"
-        raise ValueError(msg)
+    _check_orders(orders, base_order)
     shift = _resolve_shift(shift, base_order)
     base = _base_approximation(method, degree, base_order)
     if shift != 0.0:
         base = base.shifted(shift)
     return [base.induced(order - base_order) for order in orders]
+
+
+def _check_orders(orders: Sequence[int], base_order: int) -> None:
+    """Check that ``orders`` is non-empty and no order is below ``base_order``.
+
+    Raises:
+        ValueError: If ``orders`` is empty or an order is below ``base_order``.
+    """
+    if not orders:
+        msg = "at least one order is required"
+        raise ValueError(msg)
+    if any(order < base_order for order in orders):
+        msg = f"all orders must be at least base_order={base_order}, got {list(orders)}"
+        raise ValueError(msg)
 
 
 def _resolve_shift(shift: float | None, base_order: int) -> float:

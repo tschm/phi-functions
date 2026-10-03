@@ -105,7 +105,9 @@ def test_common_pole_approximations_share_poles():
 
 
 def test_common_pole_approximations_validate():
-    """Orders below the base, shifts off the exponential, unknown methods and contours with a base are refused."""
+    """No orders, orders below the base, shifts off the exponential, unknown methods and based contours are refused."""
+    with pytest.raises(ValueError, match="at least one order"):
+        common_pole_approximations(())
     with pytest.raises(ValueError, match="at least base_order"):
         common_pole_approximations((0, 1), base_order=1)
     with pytest.raises(ValueError, match="only meaningful"):
@@ -114,6 +116,12 @@ def test_common_pole_approximations_validate():
         common_pole_approximations((0,), method="pade")
     with pytest.raises(ValueError, match="base_order=0"):
         common_pole_approximations((1,), method="talbot", base_order=1)
+
+
+def test_solver_rejects_empty_orders():
+    """An empty set of orders fails at construction, not on first use."""
+    with pytest.raises(ValueError, match="at least one order"):
+        PhiSolver(-np.eye(2), orders=())
 
 
 def test_method_literal_matches_contours():
