@@ -84,30 +84,27 @@ class PartialFractions:
             axis, if every pole in the upper half-plane has a conjugate partner with conjugate residue, the
             real poles have real residues and the constant is real. ``None`` otherwise.
         """
-        if abs(self.constant.imag) > rtol * max(1.0, abs(self.constant)):
-            return None
         upper = np.flatnonzero(self.poles.imag > 0)
         real = np.flatnonzero(self.poles.imag == 0)
-        lower = list(np.flatnonzero(self.poles.imag < 0))
-        if upper.size != len(lower):
+        lower = np.flatnonzero(self.poles.imag < 0)
+        if upper.size != lower.size or not self._real_scalars(real, rtol):
             return None
-        if np.any(np.abs(self.residues[real].imag) > rtol * np.abs(self.residues[real])):
+        pairs = _pair_conjugates(self.poles, upper, lower)
+        if not all(self._conjugate_pair(j, k, rtol) for j, k in pairs):
             return None
-        for j in upper:
-            pole, residue = self.poles[j].conjugate(), self.residues[j].conjugate()
-            match = next(
-                (
-                    k
-                    for k in lower
-                    if abs(self.poles[k] - pole) <= rtol * abs(pole)
-                    and abs(self.residues[k] - residue) <= rtol * abs(residue)
-                ),
-                None,
-            )
-            if match is None:
-                return None
-            lower.remove(match)
         return upper, real
+
+    def _real_scalars(self, real: NDArray[np.intp], rtol: float) -> bool:
+        """Whether the constant and the residues at the poles ``real`` are real up to ``rtol``."""
+        residues = self.residues[real]
+        real_residues = not np.any(np.abs(residues.imag) > rtol * np.abs(residues))
+        return real_residues and abs(self.constant.imag) <= rtol * max(1.0, abs(self.constant))
+
+    def _conjugate_pair(self, j: int, k: int, rtol: float) -> bool:
+        """Whether pole and residue ``k`` are the conjugates of pole and residue ``j`` up to ``rtol``."""
+        pole, residue = self.poles[j].conjugate(), self.residues[j].conjugate()
+        close_pole = abs(self.poles[k] - pole) <= rtol * abs(pole)
+        return close_pole and abs(self.residues[k] - residue) <= rtol * abs(residue)
 
     def __call__(self, z: ArrayLike) -> NDArray:
         """Evaluate the rational function at the points ``z``.
@@ -278,22 +275,45 @@ def symmetrized(poles: ArrayLike, residues: ArrayLike, constant: complex = 0.0) 
     """
     p = np.atleast_1d(np.asarray(poles, dtype=np.complex128))
     c = np.atleast_1d(np.asarray(residues, dtype=np.complex128))
-    order = np.argsort(np.abs(p.imag))
-    n_real = p.size % 2
-    real_idx, rest = order[:n_real], order[n_real:]
-    upper = [j for j in rest if p[j].imag > 0]
-    lower = [j for j in rest if p[j].imag <= 0]
-    if len(upper) != len(lower):
-        msg = "poles are not symmetric about the real axis"
-        raise ValueError(msg)
-    new_poles = [complex(p[j].real) for j in real_idx]
-    new_residues = [complex(c[j].real) for j in real_idx]
-    for j in upper:
-        k = min(lower, key=lambda k: abs(p[k] - p[j].conjugate()))
-        lower.remove(k)
+    real_idx, upper, lower = _split_half_planes(p)
+    new_poles = list(p[real_idx].real.astype(np.complex128))
+    new_residues = list(c[real_idx].real.astype(np.complex128))
+    for j, k in _pair_conjugates(p, upper, lower):
         pole = 0.5 * (p[j] + p[k].conjugate())
         residue = 0.5 * (c[j] + c[k].conjugate())
         new_poles += [pole, pole.conjugate()]
         new_residues += [residue, residue.conjugate()]
     sort = np.argsort(np.asarray(new_poles).imag)
     return PartialFractions(np.asarray(new_poles)[sort], np.asarray(new_residues)[sort], complex(constant).real)
+
+
+def _split_half_planes(p: NDArray[np.complex128]) -> tuple[NDArray[np.intp], NDArray[np.intp], NDArray[np.intp]]:
+    """Split pole indices into the real pole, the upper and the lower half-plane, up to rounding.
+
+    When the number of poles is odd, the pole nearest the real axis counts as the real one; every other pole
+    belongs to the upper half-plane if its imaginary part is positive and to the lower one otherwise.
+    """
+    order = np.argsort(np.abs(p.imag))
+    n_real = p.size % 2
+    rest = order[n_real:]
+    return order[:n_real], rest[p[rest].imag > 0], rest[p[rest].imag <= 0]
+
+
+def _pair_conjugates(
+    poles: NDArray[np.complex128], upper: Sequence[int] | NDArray[np.intp], lower: Sequence[int] | NDArray[np.intp]
+) -> list[tuple[int, int]]:
+    """Pair each pole in ``upper`` with the remaining pole in ``lower`` nearest its conjugate.
+
+    Raises:
+        ValueError: If ``upper`` and ``lower`` differ in length.
+    """
+    if len(upper) != len(lower):
+        msg = "poles are not symmetric about the real axis"
+        raise ValueError(msg)
+    remaining = [int(k) for k in lower]
+    pairs = []
+    for j in upper:
+        k = min(remaining, key=lambda k: abs(poles[k] - poles[j].conjugate()))
+        remaining.remove(k)
+        pairs.append((int(j), k))
+    return pairs
