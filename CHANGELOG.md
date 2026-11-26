@@ -5,6 +5,35 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and entries are generated from [Conventional Commits](https://www.conventionalcommits.org).
 
+## [0.3.0] - 2026-11-26
+
+### Bug Fixes
+- Reject empty orders at construction (#23)
+- Solve every pole for a complex operator with real data (#22) (#37)
+
+### Maintenance
+- Bring symmetrized and conjugate_representatives to A complexity (#24)
+- Chore(deps)(deps): bump numpy
+- Chore(deps)(deps): bump the github-actions group across 1 directory with 9 updates
+- Chore(deps-dev)(deps-dev): update uv-build requirement
+- Chore(deps)(deps): bump the github-actions group with 9 updates (#31)
+- Chore(deps-dev)(deps-dev): bump pytest (#32)
+- Chore(deps)(deps): bump numpy (#34)
+- Chore(deps)(deps): bump the github-actions group with 8 updates (#33)
+- Update rhiza to v1.14.0 (#35)
+- Split rational.py into focused private modules (#36) (#38)
+- Bring evaluate_shared_poles to A complexity (#40) (#43)
+- Add property-based tests for the PartialFractions identities (#41) (#45)
+- Make pair_conjugates package-public in _fractions (#42) (#44)
+
+### Other Changes
+- Merge pull request #26 from tschm/rhiza_fix_24_20261003
+- Merge branch 'main' into rhiza_fix_23_20261003
+- Merge pull request #25 from tschm/rhiza_fix_23_20261003
+- Merge pull request #28 from tschm/dependabot/uv/python-dependencies-7888558eb8
+- Merge pull request #30 from tschm/dependabot/github_actions/github-actions-bb01b86155
+- Merge pull request #29 from tschm/dependabot/uv/uv-build-gte-0.11.28-and-lt-0.14.0
+
 ## [0.2.0] - 2026-09-26
 
 ### New Features
