@@ -160,30 +160,35 @@ class PartialFractions:
             return self
         return PartialFractions(self.poles, self.residues * self.poles ** (-k), 0.0)
 
-    def apply(self, solve: Solve, b: ArrayLike) -> NDArray:
+    def apply(self, solve: Solve, b: ArrayLike, *, real_operator: bool = True) -> NDArray:
         """Evaluate ``r(A) b`` with one shifted linear solve per pole.
 
         Args:
             solve: ``solve(z, rhs)`` returns ``(A - z I)^{-1} rhs``.
             b: Right-hand side, a vector or a matrix of column vectors.
+            real_operator: Whether ``A`` is real, see :func:`evaluate_shared_poles`.
 
         Returns:
-            ``r(A) b``, real when ``b`` is real and the function has real coefficients.
+            ``r(A) b``, real when ``A`` and ``b`` are real and the function has real coefficients.
         """
-        return evaluate_shared_poles([self], solve, b)[0]
+        return evaluate_shared_poles([self], solve, b, real_operator=real_operator)[0]
 
 
-def evaluate_shared_poles(fractions: Sequence[PartialFractions], solve: Solve, b: ArrayLike) -> NDArray:
+def evaluate_shared_poles(
+    fractions: Sequence[PartialFractions], solve: Solve, b: ArrayLike, *, real_operator: bool = True
+) -> NDArray:
     """Evaluate ``r_i(A) b`` for rational functions ``r_i`` that share their poles.
 
     Each pole costs one linear solve regardless of how many functions are evaluated; that is the point of
-    approximating all phi functions in a common set of poles. When ``b`` is real and the functions have
-    real coefficients only poles in the closed upper half-plane are solved for, as ``x(conj z) = conj x(z)``.
+    approximating all phi functions in a common set of poles. When ``A`` and ``b`` are real and the functions
+    have real coefficients only poles in the closed upper half-plane are solved for, as
+    ``x(conj z) = conj x(z)``. That symmetry fails for a complex ``A``, so pass ``real_operator=False`` then.
 
     Args:
         fractions: Rational functions with identical ``poles`` arrays.
         solve: ``solve(z, rhs)`` returns ``(A - z I)^{-1} rhs``.
         b: Right-hand side, a vector or a matrix of column vectors.
+        real_operator: Whether ``A`` is real. If ``False`` every pole is solved for and the result is complex.
 
     Returns:
         Array of shape ``(len(fractions), *b.shape)`` holding ``r_i(A) b``.
@@ -204,7 +209,7 @@ def evaluate_shared_poles(fractions: Sequence[PartialFractions], solve: Solve, b
     """
     poles = _shared_poles(fractions)
     rhs = np.asarray(b)
-    real_data = not np.iscomplexobj(rhs) and all(r.is_real for r in fractions)
+    real_data = real_operator and not np.iscomplexobj(rhs) and all(r.is_real for r in fractions)
 
     out = np.array([r.constant * rhs for r in fractions], dtype=np.complex128)
     for j, weight in _solve_terms(fractions[0], real_data):

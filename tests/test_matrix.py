@@ -70,7 +70,7 @@ def test_solver_factorizes_each_pole_once(laplacian, rhs):
         shifts.append(z)
         return inner(z)
 
-    solver = PhiSolver(laplacian, (0, 1, 2), h=0.01, degree=8, factorize=counting)
+    solver = PhiSolver(laplacian, (0, 1, 2), h=0.01, degree=8, factorize=counting, real_operator=True)
     first = solver(rhs)
     second = solver(np.column_stack([rhs, 2 * rhs]))
     assert len(shifts) == 4
@@ -79,6 +79,36 @@ def test_solver_factorizes_each_pole_once(laplacian, rhs):
     np.testing.assert_allclose(second[..., 1], 2 * first, rtol=1e-12)
     assert solver.poles.shape == (8,)
     assert solver.orders == (0, 1, 2)
+
+
+def test_complex_operator_with_real_data():
+    """A complex A with a real b solves at every pole and matches the dense reference (issue #22)."""
+    a = np.diag([-1.0 + 0.5j, -2.0 - 0.3j])
+    b = np.ones(2)
+    result = phi_matvec(a, b, orders=(0, 1))
+    assert result.dtype == np.complex128
+    for order in (0, 1):
+        np.testing.assert_allclose(result[order], phi_matrix(order, a) @ b, rtol=1e-9)
+    np.testing.assert_allclose(phi_matvec(a.tolist(), b, orders=(0, 1)), result, rtol=1e-12)
+    sparse = phi_matvec(scipy.sparse.csr_array(a), b, orders=(0, 1))
+    np.testing.assert_allclose(sparse, result, rtol=1e-12)
+
+
+def test_custom_factorize_assumes_a_complex_operator(laplacian, rhs, reference):
+    """Without ``real_operator`` a custom factorizer gets every pole solved, as its operator is unknown."""
+    inner = shifted_factorizer(laplacian, h=0.01)
+    shifts = []
+
+    def counting(z):
+        """Record every factorization request."""
+        shifts.append(z)
+        return inner(z)
+
+    solver = PhiSolver(laplacian, (0, 1, 2, 3), h=0.01, factorize=counting)
+    result = solver(rhs)
+    assert not solver.real_operator
+    assert len(shifts) == solver.poles.size
+    assert np.all(relative_errors(result.real, reference) < 1e-8)
 
 
 def test_exponential_euler_step(laplacian):
