@@ -79,6 +79,15 @@ def shifted_factorizer(a: ArrayLike | scipy.sparse.sparray | scipy.sparse.spmatr
     return factorize_dense
 
 
+def _is_real(a: ArrayLike | scipy.sparse.sparray | scipy.sparse.spmatrix) -> bool:
+    """Return whether the dense or sparse matrix ``a`` has a real dtype."""
+    # SciPy sparse matrices carry a dtype that their type stubs do not declare.
+    dtype = getattr(a, "dtype", None)
+    if dtype is None:
+        dtype = np.asarray(a).dtype
+    return not np.issubdtype(dtype, np.complexfloating)
+
+
 class PhiSolver:
     """Evaluate ``phi_l(h A) b`` for a fixed operator and a fixed set of orders, reusing the factorizations.
 
@@ -108,6 +117,7 @@ class PhiSolver:
         shift: float | None = None,
         base_order: int = 0,
         factorize: Factorize | None = None,
+        real_operator: bool | None = None,
     ) -> None:
         """Set up the approximations and the factorizer.
 
@@ -121,11 +131,17 @@ class PhiSolver:
             base_order: Whose poles to use, see :func:`common_pole_approximations`.
             factorize: Custom ``factorize(z)`` returning ``rhs -> (h A - z I)^{-1} rhs``; use it for
                 operators that are not matrices or for solvers of your own.
+            real_operator: Whether ``A`` is real, which lets real right-hand sides be solved at half the
+                poles. Inferred from the dtype of ``a`` when ``None``; with a custom ``factorize`` it then
+                defaults to ``False``, so pass ``True`` to keep the saving for a real operator.
         """
         self.orders = tuple(orders)
         self.fractions = common_pole_approximations(
             self.orders, degree=degree, method=method, shift=shift, base_order=base_order
         )
+        if real_operator is None:
+            real_operator = factorize is None and _is_real(a)
+        self.real_operator = real_operator
         self._factorize = factorize if factorize is not None else shifted_factorizer(a, h=h)
         self._solvers: dict[complex, Callable[[NDArray], NDArray]] = {}
 
@@ -150,7 +166,7 @@ class PhiSolver:
         Returns:
             Array of shape ``(len(orders), *b.shape)``.
         """
-        return evaluate_shared_poles(self.fractions, self._solve, b)
+        return evaluate_shared_poles(self.fractions, self._solve, b, real_operator=self.real_operator)
 
 
 def phi_matvec(
@@ -164,6 +180,7 @@ def phi_matvec(
     shift: float | None = None,
     base_order: int = 0,
     factorize: Factorize | None = None,
+    real_operator: bool | None = None,
 ) -> NDArray:
     """Evaluate ``phi_l(h A) b`` for the given orders in one go.
 
@@ -180,6 +197,7 @@ def phi_matvec(
         shift: Lu's shift, see :class:`PhiSolver`.
         base_order: Whose poles to use, see :class:`PhiSolver`.
         factorize: Custom factorizer, see :class:`PhiSolver`.
+        real_operator: Whether ``A`` is real, see :class:`PhiSolver`.
 
     Returns:
         Array of shape ``(len(orders), *b.shape)`` with ``phi_l(h A) b`` for each ``l``.
@@ -193,6 +211,14 @@ def phi_matvec(
                [0.632121, 0.632121]])
     """
     solver = PhiSolver(
-        a, orders, h=h, degree=degree, method=method, shift=shift, base_order=base_order, factorize=factorize
+        a,
+        orders,
+        h=h,
+        degree=degree,
+        method=method,
+        shift=shift,
+        base_order=base_order,
+        factorize=factorize,
+        real_operator=real_operator,
     )
     return solver(b)
