@@ -74,7 +74,7 @@ class PartialFractions:
         lower = np.flatnonzero(self.poles.imag < 0)
         if upper.size != lower.size or not self._real_scalars(real, rtol):
             return None
-        pairs = _pair_conjugates(self.poles, upper, lower)
+        pairs = pair_conjugates(self.poles, upper, lower)
         if not all(self._conjugate_pair(j, k, rtol) for j, k in pairs):
             return None
         return upper, real
@@ -159,7 +159,7 @@ class PartialFractions:
         return evaluate_shared_poles([self], solve, b, real_operator=real_operator)[0]
 
 
-def _pair_conjugates(
+def pair_conjugates(
     poles: NDArray[np.complex128], upper: Sequence[int] | NDArray[np.intp], lower: Sequence[int] | NDArray[np.intp]
 ) -> list[tuple[int, int]]:
     """Pair each pole in ``upper`` with the remaining pole in ``lower`` nearest its conjugate.

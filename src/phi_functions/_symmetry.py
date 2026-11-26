@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from phi_functions._fractions import PartialFractions, _pair_conjugates
+from phi_functions._fractions import PartialFractions, pair_conjugates
 
 
 def symmetrized(poles: ArrayLike, residues: ArrayLike, constant: complex = 0.0) -> PartialFractions:
@@ -41,7 +41,7 @@ def symmetrized(poles: ArrayLike, residues: ArrayLike, constant: complex = 0.0) 
     real_idx, upper, lower = _split_half_planes(p)
     new_poles = list(p[real_idx].real.astype(np.complex128))
     new_residues = list(c[real_idx].real.astype(np.complex128))
-    for j, k in _pair_conjugates(p, upper, lower):
+    for j, k in pair_conjugates(p, upper, lower):
         pole = 0.5 * (p[j] + p[k].conjugate())
         residue = 0.5 * (c[j] + c[k].conjugate())
         new_poles += [pole, pole.conjugate()]
