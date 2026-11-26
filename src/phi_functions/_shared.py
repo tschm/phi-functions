@@ -51,15 +51,27 @@ def evaluate_shared_poles(
     """
     poles = _shared_poles(fractions)
     rhs = np.asarray(b)
-    real_data = real_operator and not np.iscomplexobj(rhs) and all(r.is_real for r in fractions)
+    real_data = _is_real_data(fractions, rhs, real_operator=real_operator)
 
     out = np.array([r.constant * rhs for r in fractions], dtype=np.complex128)
     for j, weight in _solve_terms(fractions[0], real_data):
-        x = solve(complex(poles[j]), rhs)
-        for i, r in enumerate(fractions):
-            contribution = r.residues[j] * x
-            out[i] += weight * (contribution.real if real_data else contribution)
+        _accumulate(out, fractions, j, weight * solve(complex(poles[j]), rhs), real_data=real_data)
     return out.real if real_data else out
+
+
+def _is_real_data(fractions: Sequence[PartialFractions], rhs: NDArray, *, real_operator: bool) -> bool:
+    """Whether ``A``, ``b`` and every function are real, so conjugate poles can share one solve."""
+    return real_operator and not np.iscomplexobj(rhs) and all(r.is_real for r in fractions)
+
+
+def _accumulate(out: NDArray, fractions: Sequence[PartialFractions], j: int, x: NDArray, *, real_data: bool) -> None:
+    """Add the contribution ``residues[j] * x`` of pole ``j`` to each function's entry of ``out``.
+
+    ``x`` is the (weighted) solve for pole ``j``; for real data only its real part contributes.
+    """
+    for i, r in enumerate(fractions):
+        contribution = r.residues[j] * x
+        out[i] += contribution.real if real_data else contribution
 
 
 def _shared_poles(fractions: Sequence[PartialFractions]) -> NDArray[np.complex128]:
