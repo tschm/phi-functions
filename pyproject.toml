@@ -31,7 +31,7 @@ Homepage = "https://github.com/tschm/phi-functions"
 Repository = "https://github.com/tschm/phi-functions"
 
 [dependency-groups]
-test = ["hypothesis>=6.100", "pytest>=8.0", "pytest-cov>=5.0"]
+test = ["hypothesis>=6.100", "pytest>=9.1.1", "pytest-cov>=5.0"]
 
 [tool.bumpversion]
 current_version = "0.3.0"
